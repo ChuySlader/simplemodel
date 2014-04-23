@@ -132,7 +132,7 @@ var SimpleModel = function(p) {
                     "json"
                 )
                 .done(function(data) {
-                    if( isnew && data.id !== undefined) {
+                    if( isnew || data.id !== undefined || data.id === '' ) {
                         isnew = false;
                         self.data.id = data.id;
                     }
