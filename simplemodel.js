@@ -93,22 +93,26 @@ var SimpleModel = function(p) {
     	if(validators.indexOf("default") !== -1) {
     		//Validation base
     		for(i in domObjects) {
-    			var o = jQuery(domObjects[i])
+    			var o = jQuery(domObjects[i]);
+    			var ref = o;
+    			if(this.properties.fields[o.attr("name")].reference !== undefined) {
+    				ref = jQuery(this.properties.fields[o.attr("name")].reference);
+    			}
     			var v = domObjects[i].value;
-    			if( o.hasClass("border-error") ) { o.removeClass("border-error"); }
-        		if( o.hasClass("border-warning") ) { o.removeClass("border-warning"); }
+    			if( ref.hasClass("border-error") ) { ref.removeClass("border-error"); }
+        		if( ref.hasClass("border-warning") ) { ref.removeClass("border-warning"); }
         		if( this.properties.fields[o.attr("name")] === undefined)
             		continue;
             	if( this.properties.fields[o.attr("name")].required !== undefined ) {
 		            if( v === '' || v === undefined) {
-		                o.addClass("border-error"); 
+		                ref.addClass("border-error"); 
 		                r.errors++;
 		                continue
 		            }
 		        }
 		        if( this.properties.fields[o.attr("name")].type !== undefined ) {
 		            if( typeOf(v) !== this.properties.fields[o.attr("name")].type ) {
-		                o.addClass("border-warning");
+		                ref.addClass("border-warning");
 		                r.warnings++;
 		                continue;
 		            }
@@ -215,12 +219,18 @@ var SimpleModel = function(p) {
             input.attr("model-id", id);
             if( input.hasClass('ommit') ) return;
             if( parent.properties.fields[input.attr("name")] !== undefined ) {
-            	
+            	var onchange = function() {
+            		Instance.fields[jQuery(this).attr('name')] = this.value;
+	                if( parent.autopublish ) {
+	                    Instance.publish();
+	                }
+            	}
             	if( input.attr('type') === "checkbox" || input.attr('type') === "radio" ) {
 	                var group = jQuery("input[name='"+input.attr('name')+"']");
 	                var i = 0;
 	                input = jQuery('<input type="hidden" name="'+input.attr('name')+'" value="" />');
 	                input.insertBefore(group);
+	                input.change( onchange );
 	                var dataProccessor = function(i) {
 	                	i.val('');
 	                	var j = 0;
@@ -249,6 +259,7 @@ var SimpleModel = function(p) {
 	                        i++;
 	                    }
 	                });
+	                dataProccessor(input);
 	            } else {
 	            	Instance.data[input.attr("name")] = input.attr("value");
 	                if( input.attr("value") === '' || input.attr("value") === undefined ) {
@@ -256,15 +267,9 @@ var SimpleModel = function(p) {
 	                        Instance.data[input.attr("name")] = parent.properties.fields[input.attr("name")].default;
 	                    }
 	                }
+	                input.change( onchange );
 	            }   
-	            input.change( function() {
-	                Instance.fields[jQuery(this).attr('name')] = this.value;
-	                if( parent.autopublish ) {
-	                    Instance.publish();
-	                }
-	            });
-	            dataProccessor(input);
-                Instance.inputs.push(input);
+	            Instance.inputs.push(input);
             }
         });
 		this.instances.length++;
