@@ -2,15 +2,17 @@ var SimpleModel = function(p) {
     this.properties = {
         'url': undefined,
         'actions': {
-            'insert': undefined,
-            'update': undefined,
-            'delete': undefined
+            'publish': undefined,
+            'delete': undefined,
+            'masivePublish': undefined
         },
-        'methods': {
+        'callbacks': {
         	'beforePublish': undefined,
         	'afterPublish': undefined,
         	'beforeDelete': undefined,
-        	'afterDelete': undefined
+        	'afterDelete': undefined,
+        	'afterMasivePublish': undefined,
+        	'beforeMasivePublish': undefined
         },
         'handlers': {
         	'errorHandler': undefined,
@@ -18,7 +20,7 @@ var SimpleModel = function(p) {
         	'dataHandler': undefined,
         	'domHandler': undefined,
         	'validationHandler': undefined
-        }
+        },
         'fields': undefined,
         'autopublish': true,
         'autovalidate': true,
@@ -28,6 +30,60 @@ var SimpleModel = function(p) {
     	'length': 0,
         'onjects': undefined
     };
+    this.masivePublish = function() {
+    	var instances = this.instances.objects;
+    	var methods = this.properties.callbacks;
+    	var data = {};
+    	var self = this;
+    	if( jQuery.isFunction(methods.beforeMasivePublish) ) {
+    		var bmp = methods.before(this.instances);
+            if( !bmp ) {
+            	if( jQuery.isFunction(handlers.errorHandler) ) {
+					handlers.errorHandler("ERROR_BEFORE_PUBLISH");
+					return;
+				}
+            }
+        }
+    	for(i in instances) {
+    		if(!instances[i].validate().errors) { 
+    			data[instances[i].id] = (instances[i].data);
+    		} else {
+    			this.properties.handlers.errorHandler("ERROR_ON_MASIVEPUBLISH", instances[i]);
+    			return;
+    		}
+    	}
+    	jQuery.post(
+            this.properties.url+'/'+this.actions.masivePublish,
+            data,
+            "json"
+        )
+        .done(function(data) {
+            for(d in data) {
+            	if(data[d].id !== undefined || data[d].id !== '') {
+            		self.instances[d].data.id = data[d].id;
+            	}
+            	if(data[d].error !== undefined) {
+            		if( jQuery.isFunction(handlers.errorHandler ) {
+						handlers.errorHandler("ERROR_INSTANCE_MASIVEPUBLISH", data[d].error);
+					}
+            	}
+            }
+            if( jQuery.isFunction(methods.afterMasivePublish)){
+            	var amp = methods.afterMasivePublish(data, self.data, self.fields);
+            	if( !amp ) {
+                	if( jQuery.isFunction(handlers.errorHandler ) {
+						handlers.errorHandler("ERROR_AFTER_MASIVEPUBLISH");
+						return;
+					}
+                }
+            }
+        })
+        .fail(function(data) {
+        	if( jQuery.isFunction(handlers.errorHandler ) {
+				handlers.errorHandler("MASIVEPUBLISH_FAIL", data);
+			}
+        });
+    }
     this.validator = function(fields, domObjects) {
     	var r = {
     		'errors': 0,
@@ -84,7 +140,7 @@ var SimpleModel = function(p) {
     
     this.create = function(data) {
         var parent = this;
-        var methods = parent.properties.methods;
+        var methods = parent.properties.callbacks;
         var handlers = parent.properties.handlers;
         var actions = parent.properties.actions;
         var d = new Date();
@@ -97,50 +153,49 @@ var SimpleModel = function(p) {
             'id': id,
             'data': {},
             'fields': [],
+            'validate': function() {
+            	return parent.validator(this.data, this.fields);
+            },
             'publish': function() {
-            	var isnew = false;
             	if( jQuery.isFunction(methods.beforePublish) ) {
             		var bp = methods.before(this.fields);
                     if( !bp ) {
                     	if( jQuery.isFunction(handlers.errorHandler) ) {
 							handlers.errorHandler("ERROR_BEFORE_PUBLISH");
+							return;
 						}
                     }
                 }
                 if(parent.properties.autovalidate) {
-                	var r = parent.validator();
+                	var r = this.validate();
 					if(r.errors > 0) {
 						if( jQuery.isFunction(handlers.errorHandler) ) {
 							handlers.errorHandler("ERROR_ON_VALIDATION");
+							return;
 						}
 					} 
 					if(r.warnings > 0) {
 						if( jQuery.isFunction(handlers.warningHandler) ) {
 							handlers.warningHandler("WARNING_ON_VALIDATION");
+							return;
 						}
 					}
                 }
-                var mainMethod = actions.update;
-                if( this.data.id === undefined ) {
-                    currentMethod = actions.insert;
-                    isnew = true;
-                }
                 var self = this;
                 jQuery.post(
-                    parent.properties.url+'/'+mainMethod,
+                    parent.properties.url+'/'+actions.publish,
                     self.data,
                     "json"
                 )
                 .done(function(data) {
-                    if( isnew || data.id !== undefined || data.id === '' ) {
-                        isnew = false;
+                    if( data.id !== undefined || data.id !== '' ) {
                         self.data.id = data.id;
                     }
                     if( jQuery.isFunction(methods.afterPublish)){
                     	var ap = methods.afterPublish(data, self.data, self.fields);
                     	if( !ap ) {
                         	if( jQuery.isFunction(handlers.errorHandler ) {
-								handlers.warningHandler("ERROR_AFTER_PUBLISH");
+								handlers.errorHandler("ERROR_AFTER_PUBLISH");
 							}
                         }
                     }
