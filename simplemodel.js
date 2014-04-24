@@ -69,7 +69,7 @@ var SimpleModel = function(p) {
             	}
             }
             if( jQuery.isFunction(methods.afterMasivePublish)){
-            	var amp = methods.afterMasivePublish(data, self.data, self.fields);
+            	var amp = methods.afterMasivePublish(data, self.instances);
             	if( !amp ) {
                 	if( jQuery.isFunction(handlers.errorHandler ) {
 						handlers.errorHandler("ERROR_AFTER_MASIVEPUBLISH");
