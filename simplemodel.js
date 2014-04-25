@@ -25,7 +25,7 @@ var SimpleModel = function(p) {
 		'fields': undefined,
 		'autopublish': true,
 		'autovalidate': true,
-		'validator': 'defaul'
+		'validator': 'default'
 	};
 	this.instances = {
 		'length': 0,
@@ -91,13 +91,15 @@ var SimpleModel = function(p) {
 			'warnings': 0
 		};
 		var validators = this.properties.validator.split("|");
+                console.log(this.properties.validator);
+                console.log(validators);
 		if(validators.indexOf("default") !== -1) {
 			//Validation base
 			for(i in domObjects) {
 				var o = jQuery(domObjects[i]);
 				var ref = o;
 				if(this.properties.fields[o.attr("name")].reference !== undefined) {
-					ref = jQuery(this.properties.fields[o.attr("name")].reference);
+					ref = o.parent().find(this.properties.fields[o.attr("name")].reference);
 				}
 				var v = domObjects[i].value;
 				if( ref.hasClass("border-error") ) { ref.removeClass("border-error"); }
@@ -121,7 +123,7 @@ var SimpleModel = function(p) {
 			}
 		}
 		if( (validators.indexOf("handler") !== -1) && (jQuery.isFunction(this.properties.handlers.validationHandler)) ) {
-			var hr = this.properties.handlers.validationHandler(fields, domObjects);
+			var hr = this.properties.handlers.validationHandler(fields, domObjects, this.properties.fields);
 		}
 		if(hr !== undefined) {
 			if(hr.errors > 0) {
@@ -134,7 +136,7 @@ var SimpleModel = function(p) {
 		return r;
 	};
 	for(var k in p) {
-		if( typeof(p[k]) === typeof(this.properties[k]) ) {
+		if( jQuery.isPlainObject(this.properties[k])) {
 			for(var sk in p[k]) {
 				this.properties[k][sk] = p[k][sk];
 			}
