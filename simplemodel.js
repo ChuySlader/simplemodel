@@ -33,12 +33,14 @@ var SimpleModel = function(p) {
 		'objects': {}
 	};
 	this.masivePublish = function(ommit) {
-		var instances = this.instances.objects;
+                console.log("Test2");
+                console.log(ommit);
+		var ins = this.instances.objects;
 		var methods = this.properties.callbacks;
 		var data = {};
 		var self = this;
 		if( jQuery.isFunction(methods.beforeMasivePublish) ) {
-			var bmp = methods.before(this.instances);
+			var bmp = methods.before(ins);
 			if( !bmp ) {
 				if( jQuery.isFunction(handlers.errorHandler) ) {
 					handlers.errorHandler("ERROR_BEFORE_PUBLISH");
@@ -46,19 +48,21 @@ var SimpleModel = function(p) {
 				}
 			}
 		}
-		for(i in instances) {
-                        if(ommit.indexOf(i) !== -1) continue;
-			if(!instances[i].validate().errors) { 
-				data[instances[i].id] = (instances[i].data);
+                var its;
+		for(its in ins) {
+                        if(ommit.indexOf(its) !== -1){ continue};
+                        var v = ins[its].validate();
+			if(v.errors === 0) { 
+				data[ins[its].id] = (ins[its].data);
 			} else {
                                 if(this.properties.handlers.errorHandler !== undefined) {
-                                        this.properties.handlers.errorHandler("ERROR_ON_MASIVEPUBLISH", instances[i]);
+                                        this.properties.handlers.errorHandler("ERROR_ON_MASIVEPUBLISH", ins[its]);
                                 }
 				return;
 			}
 		}
 		jQuery.post(
-			this.properties.url+'/'+this.actions.masivePublish,
+			this.properties.url+'/'+this.properties.actions.masivePublish,
 			data,
 			"json"
 		)
@@ -111,6 +115,9 @@ var SimpleModel = function(p) {
 				if( this.properties.fields[o.attr("name")].required !== undefined ) {
 					if( v === '' || v === undefined) {
 						ref.addClass("border-error"); 
+                                                if( jQuery.isFunction(this.properties.handlers.errorHandler) ) {
+                                                        this.properties.handlers.errorHandler("ERROR_DOMFIELD_VALIDATION", o);
+                                                }
 						r.errors++;
 						continue
 					}
