@@ -64,7 +64,7 @@ var SimpleModel = function(p) {
 					self.instances[d].data.id = data[d].id;
 				}
 				if(data[d].error !== undefined) {
-					if( jQuery.isFunction(handlers.errorHandler ) {
+					if( jQuery.isFunction(handlers.errorHandler) ) {
 						handlers.errorHandler("ERROR_INSTANCE_MASIVEPUBLISH", data[d].error);
 					}
 				}
@@ -72,7 +72,7 @@ var SimpleModel = function(p) {
 			if( jQuery.isFunction(methods.afterMasivePublish)){
 				var amp = methods.afterMasivePublish(data, self.instances);
 				if( !amp ) {
-					if( jQuery.isFunction(handlers.errorHandler ) {
+					if( jQuery.isFunction(handlers.errorHandler) ) {
 						handlers.errorHandler("ERROR_AFTER_MASIVEPUBLISH");
 						return;
 					}
@@ -80,16 +80,16 @@ var SimpleModel = function(p) {
 			}
 		})
 		.fail(function(data) {
-			if( jQuery.isFunction(handlers.errorHandler ) {
+			if( jQuery.isFunction(handlers.errorHandler) ) {
 				handlers.errorHandler("MASIVEPUBLISH_FAIL", data);
 			}
 		});
-	}
+	};
 	this.validator = function(fields, domObjects) {
 		var r = {
 			'errors': 0,
 			'warnings': 0
-		}
+		};
 		var validators = this.properties.validator.split("|");
 		if(validators.indexOf("default") !== -1) {
 			//Validation base
@@ -200,14 +200,14 @@ var SimpleModel = function(p) {
 					if( jQuery.isFunction(methods.afterPublish)){
 						var ap = methods.afterPublish(data, self.data, self.fields);
 						if( !ap ) {
-							if( jQuery.isFunction(handlers.errorHandler ) {
+							if( jQuery.isFunction(handlers.errorHandler) ) {
 								handlers.errorHandler("ERROR_AFTER_PUBLISH");
 							}
 						}
 					}
 				})
 				.fail(function(data) {
-					if( jQuery.isFunction(handlers.errorHandler ) {
+					if( jQuery.isFunction(handlers.errorHandler) ) {
 						handlers.errorHandler("PUBLISH_FAIL", data);
 					}
 				});
@@ -226,7 +226,7 @@ var SimpleModel = function(p) {
 					if( parent.autopublish ) {
 						Instance.publish();
 					}
-				}
+				};
 				if( input.attr('type') === "checkbox" || input.attr('type') === "radio" ) {
 					var group = jQuery("input[name='"+input.attr('name')+"']");
 					var i = 0;
@@ -243,7 +243,7 @@ var SimpleModel = function(p) {
 							i.val(i.val()+s+i.data()[v]);
 						}
 						i.trigger('change');
-					}
+					};
 					group.each(function() {
 						var special = jQuery(this);
 						if(this.checked) {
