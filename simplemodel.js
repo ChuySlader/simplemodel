@@ -31,7 +31,7 @@ var SimpleModel = function(p) {
 		'length': 0,
 		'objects': {}
 	};
-	this.masivePublish = function() {
+	this.masivePublish = function(ommit) {
 		var instances = this.instances.objects;
 		var methods = this.properties.callbacks;
 		var data = {};
@@ -46,10 +46,13 @@ var SimpleModel = function(p) {
 			}
 		}
 		for(i in instances) {
+                        if(ommit.indexOf(i) !== -1) continue;
 			if(!instances[i].validate().errors) { 
 				data[instances[i].id] = (instances[i].data);
 			} else {
-				this.properties.handlers.errorHandler("ERROR_ON_MASIVEPUBLISH", instances[i]);
+                                if(this.properties.handlers.errorHandler !== undefined) {
+                                        this.properties.handlers.errorHandler("ERROR_ON_MASIVEPUBLISH", instances[i]);
+                                }
 				return;
 			}
 		}
@@ -91,8 +94,6 @@ var SimpleModel = function(p) {
 			'warnings': 0
 		};
 		var validators = this.properties.validator.split("|");
-                console.log(this.properties.validator);
-                console.log(validators);
 		if(validators.indexOf("default") !== -1) {
 			//Validation base
 			for(i in domObjects) {
@@ -101,7 +102,7 @@ var SimpleModel = function(p) {
 				if(this.properties.fields[o.attr("name")].reference !== undefined) {
 					ref = o.parent().find(this.properties.fields[o.attr("name")].reference);
 				}
-				var v = domObjects[i].value;
+				var v = fields[o.attr("name")];
 				if( ref.hasClass("border-error") ) { ref.removeClass("border-error"); }
 				if( ref.hasClass("border-warning") ) { ref.removeClass("border-warning"); }
 				if( this.properties.fields[o.attr("name")] === undefined)
