@@ -14,7 +14,8 @@ var SimpleModel = function(p) {
 			'afterDelete': undefined,
 			'afterMasivePublish': undefined,
 			'beforeMasivePublish': undefined,
-                        'onCreate': undefined
+                        'onCreate': undefined,
+                        'onPublishing': undefined
 		},
 		'handlers': {
 			'errorHandler': undefined,
@@ -61,6 +62,9 @@ var SimpleModel = function(p) {
 				return;
 			}
 		}
+                if(jQuery.isFunction(this.properties.callbacks.onPublishing)) {
+                    this.properties.callbacks.onPublishing("masive");
+                }
 		jQuery.post(
 			this.properties.url+'/'+this.properties.actions.masivePublish,
 			data,
@@ -199,6 +203,9 @@ var SimpleModel = function(p) {
 					}
 				}
 				var self = this;
+                                if(jQuery.isFunction(parent.properties.callbacks.onPublishing)) {
+                                    parent.properties.callbacks.onPublishing("instance");
+                                }
 				jQuery.post(
 					parent.properties.url+'/'+actions.publish,
 					self.data,
