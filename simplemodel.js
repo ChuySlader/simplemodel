@@ -13,7 +13,8 @@ var SimpleModel = function(p) {
 			'beforeDelete': undefined,
 			'afterDelete': undefined,
 			'afterMasivePublish': undefined,
-			'beforeMasivePublish': undefined
+			'beforeMasivePublish': undefined,
+                        'onCreate': undefined
 		},
 		'handlers': {
 			'errorHandler': undefined,
@@ -284,6 +285,9 @@ var SimpleModel = function(p) {
 		});
 		this.instances.length++;
 		this.instances.objects[Instance.id] = Instance;
+                if(jQuery.isFunction(this.properties.callbacks.onCreate)) {
+                    this.properties.callbacks.onCreate(Instance);
+                }
 		return Instance;
 	}; 
 	
