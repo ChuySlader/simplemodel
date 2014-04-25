@@ -3,9 +3,9 @@ var SimpleModel = function(p) {
 		'url': undefined,
 		'type': undefined,
 		'actions': {
-			'publish': undefined,
+			'publish': 'publish',
 			'delete': undefined,
-			'masivePublish': undefined
+			'masivePublish': 'masivePublish'
 		},
 		'callbacks': {
 			'beforePublish': undefined,
@@ -29,7 +29,7 @@ var SimpleModel = function(p) {
 	};
 	this.instances = {
 		'length': 0,
-		'onjects': undefined
+		'objects': {}
 	};
 	this.masivePublish = function() {
 		var instances = this.instances.objects;
@@ -156,7 +156,7 @@ var SimpleModel = function(p) {
 		/*Instance, this will be returned to manage the new object that belongs to the model*/
 		var Instance = {
 			'id': id,
-			'type': (parent.type !== undefined) ? parent.type:'generic',
+			'type': (parent.properties.type !== undefined) ? parent.properties.type:'generic',
 			'data': {},
 			'fields': [],
 			'validate': function() {
@@ -164,7 +164,7 @@ var SimpleModel = function(p) {
 			},
 			'publish': function() {
 				if( jQuery.isFunction(methods.beforePublish) ) {
-					var bp = methods.before(this.fields);
+					var bp = methods.before(this.data, this.fields, parent.properties.fields);
 					if( !bp ) {
 						if( jQuery.isFunction(handlers.errorHandler) ) {
 							handlers.errorHandler("ERROR_BEFORE_PUBLISH");
@@ -194,9 +194,14 @@ var SimpleModel = function(p) {
 					"json"
 				)
 				.done(function(data) {
-					if( data.id !== undefined || data.id !== '' ) {
+					if( data.id !== undefined && data.id !== '' ) {
 						self.data.id = data.id;
 					}
+                                        if(data.error !== undefined) {
+                                            if( jQuery.isFunction(handlers.errorHandler) ) {
+                                                handlers.errorHandler("ERROR_ON_PUBLISH_RESPONSE", data.error);
+                                            }
+                                        }
 					if( jQuery.isFunction(methods.afterPublish)){
 						var ap = methods.afterPublish(data, self.data, self.fields);
 						if( !ap ) {
@@ -222,8 +227,8 @@ var SimpleModel = function(p) {
 			if( input.hasClass('ommit') ) return;
 			if( parent.properties.fields[input.attr("name")] !== undefined ) {
 				var onchange = function() {
-					Instance.fields[jQuery(this).attr('name')] = this.value;
-					if( parent.autopublish ) {
+					Instance.data[jQuery(this).attr('name')] = this.value;
+					if( parent.properties.autopublish ) {
 						Instance.publish();
 					}
 				};
@@ -271,7 +276,7 @@ var SimpleModel = function(p) {
 					}
 					input.change( onchange );
 				}   
-				Instance.inputs.push(input);
+				Instance.fields.push(input);
 			}
 		});
 		this.instances.length++;
